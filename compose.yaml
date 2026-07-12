@@ -1,0 +1,22 @@
+# Local development only — production runs on the VPS with its own isolated Postgres
+# (locked decision: auth data never shares a database with the apps).
+# Port 5433 so it coexists with moneytrckr's local Postgres on 5432.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: dev-only
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth -d auth"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  auth-pgdata:

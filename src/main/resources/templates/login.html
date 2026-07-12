@@ -1,0 +1,34 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Iniciar sesión — cuenta del ecosistema</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<main class="card">
+  <span class="brand">sebastiancardona<span class="tld">.dev</span></span>
+  <h1>Iniciar sesión</h1>
+  <p class="hint">Una sola cuenta para todas las apps del ecosistema.</p>
+
+  <p class="notice ok" th:if="${param.registered != null}">Cuenta creada. Ahora inicia sesión.</p>
+  <p class="notice ok" th:if="${param.logout != null}">Sesión cerrada.</p>
+  <p class="notice err" th:if="${param.error != null and param.error[0] == 'rate'}">
+    Demasiados intentos. Espera unos minutos e intenta de nuevo.</p>
+  <p class="notice err" th:if="${param.error != null and param.error[0] != 'rate'}">
+    Correo o contraseña incorrectos.</p>
+
+  <form th:action="@{/login}" method="post">
+    <label>Correo
+      <input type="email" name="username" autocomplete="username" required autofocus>
+    </label>
+    <label>Contraseña
+      <input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <button type="submit">Entrar</button>
+  </form>
+</main>
+</body>
+</html>

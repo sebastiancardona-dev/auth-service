@@ -1,0 +1,17 @@
+# Local development profile: auto-starts the compose Postgres and seeds an admin.
+# Run: ./mvnw spring-boot:run "-Dspring-boot.run.profiles=local"
+spring:
+  docker:
+    compose:
+      enabled: true
+      file: ./compose.yaml
+      lifecycle-management: start_only   # DB keeps running (and keeps data) across restarts
+  datasource:
+    password: dev-only
+  thymeleaf:
+    cache: false
+
+auth:
+  bootstrap:
+    admin-email: ${ADMIN_EMAIL:juanse@local.dev}
+    admin-password: ${ADMIN_PASSWORD:local-admin-password}

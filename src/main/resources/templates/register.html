@@ -1,0 +1,41 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Crear cuenta — cuenta del ecosistema</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<main class="card">
+  <span class="brand">sebastiancardona<span class="tld">.dev</span></span>
+  <h1>Crear cuenta</h1>
+
+  <div th:if="${!inviteValid}">
+    <p class="notice err">Esta invitación no es válida o ya expiró.</p>
+    <p class="hint">El registro es solo con invitación. Pide un enlace nuevo a quien te invitó.</p>
+  </div>
+
+  <div th:if="${inviteValid}">
+    <p class="hint">Tu cuenta funcionará en todas las apps del ecosistema.</p>
+    <p class="notice err" th:if="${error}" th:text="${error}"></p>
+    <form th:action="@{/register}" method="post">
+      <input type="hidden" name="invite" th:value="${invite}">
+      <label>Tu nombre
+        <input type="text" name="displayName" maxlength="100" required autofocus>
+      </label>
+      <label>Correo
+        <input type="email" name="email" autocomplete="username" required>
+      </label>
+      <label>Contraseña
+        <input type="password" name="password" autocomplete="new-password"
+               minlength="10" required>
+        <span class="field-hint">Mínimo 10 caracteres.</span>
+      </label>
+      <button type="submit">Crear cuenta</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>
