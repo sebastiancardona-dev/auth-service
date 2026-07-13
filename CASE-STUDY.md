@@ -1,7 +1,7 @@
 # Case study: building an OIDC provider you're not supposed to build
 
-> **Status: in progress** — grows as the project does. Milestone 1 (the provider itself)
-> is done; MoneyTrckr migration and Portal integration will extend this document.
+> **Status:** M1 (provider) + M2 (first-party client tooling) + M3 (MoneyTrckr migration)
+> shipped and live. Portal integration lands with project 06.
 
 ## The problem
 
@@ -69,16 +69,46 @@ disabled per client (`requireAuthorizationConsent(false)`) — one less dark pat
 less page to maintain. The setting is per-client, so a future third-party client flips it
 back on.
 
+**Bootstrapping the first token (M2).** Registering an OIDC client requires an admin
+token; getting a token requires a client. The knot is cut at bootstrap: the service
+seeds a first-party `admin-cli` public client (PKCE, RFC 8252 loopback redirect) and
+`ops/admin-token.py` runs the code flow from a terminal. That one script is how every
+real client (including MoneyTrckr's) got registered.
+
+**The migration that proved the seam (M3).** MoneyTrckr was built in Phase 2 with its
+auth deliberately isolated behind an interface. The swap to OIDC replaced the identity
+provider — JIT user provisioning by email, ecosystem groups mapped to app roles, a
+token-relay filter re-issuing the JWT with the local user id — **without changing a
+single controller**. Empirical findings that shaped it:
+
+- Spring Authorization Server issues **no refresh tokens to public clients** (probed,
+  not assumed) → the SPA-holds-tokens design died; MoneyTrckr's backend became a BFF
+  confidential client with Postgres-backed sessions instead.
+- Four bugs only a deployed environment could reveal: `redirect_uri` built as `http`
+  behind the TLS proxy (forward-headers), Spring omitting PKCE for confidential clients
+  while this provider requires it for all, Spring Security 6's deferred CSRF cookie
+  never reaching the browser, and the saved-request cache turning a 401'd background
+  fetch into the post-login landing page.
+- Single sign-out v1 is **RP-initiated only** — SAS ships no back-channel logout, so
+  sibling apps drop off at their next token refresh (≤10 min). Stated plainly rather
+  than pretended away; a custom logout-token notifier is the documented path if that
+  window ever matters.
+
 ## Results
 
-- Full OIDC provider: discovery, JWKS with rotation, code+PKCE, userinfo, RP-initiated logout.
-- 12 tests including an end-to-end protocol drive with negative cases
-  (PKCE-less authorize rejected, rotated refresh token reuse rejected, dead invites refused).
-- Invite lifecycle with complete audit: mint → share → redeem → revoke, every step logged.
+- Full OIDC provider live at auth.sebastiancardona.dev: discovery, JWKS with 30-day
+  DB-backed rotation (keys survive redeploys — verified), code+PKCE only, userinfo,
+  RP-initiated logout, invite-gated registration, headless admin API, append-only audit.
+- **A real production migration completed against it**: MoneyTrckr (the ecosystem's
+  flagship) authenticates through it exclusively; its interim edge-key gate is retired.
+- 13 provider tests + 50 in the migrated app, including full-protocol integration
+  drives with negative cases (PKCE-less authorize rejected, rotated-refresh reuse
+  rejected, dead invites refused).
+- Every security event audited: logins, failures, rate-limit hits, invite mint/redeem/
+  revoke, client registrations.
 
 ## Next
 
-- Demo client app → prove the integration path.
-- MoneyTrckr migration off local JWT (retires its interim edge-key gate).
-- Single sign-out across apps (locked into scope for v1 of the migration).
-- Portal admin UI consuming the headless API.
+- Portal (project 06) as the second OIDC client + the admin UI over the headless API.
+- Back-channel logout notifier if the ≤10-minute sign-out window ever matters.
+- TOTP MFA (backlog), key-ceremony notes for the Phase 5 backup/restore drill.
