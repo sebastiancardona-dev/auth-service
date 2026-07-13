@@ -17,5 +17,6 @@ public record AuthProperties(
 
     public record Login(int maxAttempts, Duration window) {}
 
-    public record Bootstrap(String adminEmail, String adminPassword, String adminName) {}
+    public record Bootstrap(String adminEmail, String adminPassword, String adminName,
+                            String demoEmail, String demoPassword) {}
 }

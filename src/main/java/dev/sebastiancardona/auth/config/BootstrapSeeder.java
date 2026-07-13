@@ -53,6 +53,7 @@ public class BootstrapSeeder implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         keys.ensureUsableKey();
         seedAdminUser();
+        seedDemoUser();
         seedAdminCliClient();
     }
 
@@ -69,6 +70,19 @@ public class BootstrapSeeder implements ApplicationRunner {
         admin.getGroups().add("admin");
         users.save(admin);
         log.info("Seeded admin account {}", email);
+    }
+
+    /** Test envs: a public demo login (friend group) so demo flows work end to end. */
+    private void seedDemoUser() {
+        String email = props.bootstrap().demoEmail();
+        String password = props.bootstrap().demoPassword();
+        if (email == null || email.isBlank() || password == null || password.isBlank()) return;
+        String normalized = email.toLowerCase().trim();
+        if (users.findByEmail(normalized).isPresent()) return;
+        User demo = new User(normalized, passwordEncoder.encode(password), "Demo", "es");
+        demo.getGroups().add("friend");
+        users.save(demo);
+        log.info("Seeded demo account {}", normalized);
     }
 
     private void seedAdminCliClient() {
