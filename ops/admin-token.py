@@ -24,6 +24,11 @@ import urllib.parse
 import urllib.request
 import webbrowser
 
+# Cloudflare (orange-cloud) 403s the default Python-urllib user agent
+_opener = urllib.request.build_opener()
+_opener.addheaders = [("User-Agent", "Mozilla/5.0 (admin-token.py; ecosystem ops)")]
+urllib.request.install_opener(_opener)
+
 CLIENT_ID = "admin-cli"
 REDIRECT = "http://127.0.0.1:8484/callback"
 
