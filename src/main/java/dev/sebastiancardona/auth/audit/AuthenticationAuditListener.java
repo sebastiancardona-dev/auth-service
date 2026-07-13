@@ -1,9 +1,9 @@
 package dev.sebastiancardona.auth.audit;
 
 import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
-import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationGrantAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 /** Every credential success/failure lands in the audit trail. */
@@ -18,8 +18,9 @@ public class AuthenticationAuditListener {
 
     @EventListener
     public void onSuccess(AuthenticationSuccessEvent event) {
-        // token-endpoint grants fire this too; only log human logins
-        if (event.getAuthentication() instanceof OAuth2AuthorizationGrantAuthenticationToken) return;
+        // the token endpoint fires this too (grant + client authentications);
+        // only human credential logins belong in LOGIN_OK
+        if (!(event.getAuthentication() instanceof UsernamePasswordAuthenticationToken)) return;
         audit.record(AuditService.LOGIN_OK, null, event.getAuthentication().getName(), null, null);
     }
 
