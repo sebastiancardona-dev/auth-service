@@ -38,6 +38,16 @@ that only the admin can mint.
 Tests: `./mvnw verify -Pintegration` (unit + Testcontainers; the integration suite drives
 the full PKCE flow end to end, including refresh rotation and negative cases).
 
+## Getting an admin token
+
+The first-party `admin-cli` public client is bootstrap-seeded exactly so an admin can
+ever get a token (registering clients needs a token, which needs a client):
+
+```bash
+eval "$(python ops/admin-token.py)"        # opens the browser; log in as admin
+# → AUTH_ADMIN_TOKEN in your shell for the calls below (10-min lifetime; rerun to refresh)
+```
+
 ## Registering an app (OIDC client)
 
 ```bash
