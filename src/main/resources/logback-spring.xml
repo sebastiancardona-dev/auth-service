@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Ecosystem logging contract (docs/OBSERVABILITY.md §5): JSON lines to stdout
+     in deployed envs (Alloy → Loki, project 07); humans keep readable console
+     output on the local profile. -->
+<configuration>
+  <springProfile name="local">
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <root level="INFO">
+      <appender-ref ref="CONSOLE"/>
+    </root>
+  </springProfile>
+
+  <springProfile name="!local">
+    <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+        <!-- contract field names: timestamp / level / logger / message (+ MDC requestId) -->
+        <fieldNames>
+          <timestamp>timestamp</timestamp>
+          <logger>logger</logger>
+          <version>[ignore]</version>
+          <levelValue>[ignore]</levelValue>
+          <thread>[ignore]</thread>
+        </fieldNames>
+        <timeZone>UTC</timeZone>
+      </encoder>
+    </appender>
+    <root level="INFO">
+      <appender-ref ref="JSON"/>
+    </root>
+  </springProfile>
+</configuration>

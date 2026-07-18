@@ -29,6 +29,12 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
+      <!-- JSON logs to stdout (ecosystem contract — portal OBSERVABILITY.md §5) -->
+      <groupId>net.logstash.logback</groupId>
+      <artifactId>logstash-logback-encoder</artifactId>
+      <version>8.1</version>
+    </dependency>
+    <dependency>
       <!-- the protocol implementation: flows, endpoints, token formats are the
            framework's; policy, storage, and UX around them are ours -->
       <groupId>org.springframework.boot</groupId>
