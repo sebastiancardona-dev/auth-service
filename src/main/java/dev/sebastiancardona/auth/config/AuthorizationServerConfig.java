@@ -2,6 +2,7 @@ package dev.sebastiancardona.auth.config;
 
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
+import dev.sebastiancardona.auth.activity.AppActivityService;
 import dev.sebastiancardona.auth.keys.KeyRotationService;
 import dev.sebastiancardona.auth.user.EcosystemUserDetailsService;
 import java.util.ArrayList;
@@ -108,7 +109,8 @@ public class AuthorizationServerConfig {
      */
     @Bean
     OAuth2TokenCustomizer<JwtEncodingContext> tokenCustomizer(
-            KeyRotationService keys, EcosystemUserDetailsService users, JdbcTemplate jdbc) {
+            KeyRotationService keys, EcosystemUserDetailsService users, JdbcTemplate jdbc,
+            AppActivityService activity) {
         return context -> {
             context.getJwsHeader().keyId(keys.activeKid());
 
@@ -119,6 +121,11 @@ public class AuthorizationServerConfig {
             }
             String email = context.getPrincipal().getName();
             users.findDomainUser(email).ifPresent(user -> {
+                // access token is minted exactly once per grant (code or refresh),
+                // so this is the "user X used app Y" heartbeat
+                if (OAuth2TokenType.ACCESS_TOKEN.getValue().equals(tokenType)) {
+                    activity.touch(user.getId(), context.getRegisteredClient().getClientId());
+                }
                 // plain ArrayList/HashMap only: JdbcOAuth2AuthorizationService round-trips
                 // claims through Jackson with the Spring Security allowlist, which rejects
                 // List.copyOf()'s ImmutableCollections types at userinfo time

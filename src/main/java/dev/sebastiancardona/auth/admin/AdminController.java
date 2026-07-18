@@ -1,5 +1,6 @@
 package dev.sebastiancardona.auth.admin;
 
+import dev.sebastiancardona.auth.activity.AppActivityService;
 import dev.sebastiancardona.auth.audit.AuditService;
 import dev.sebastiancardona.auth.config.AuthProperties;
 import dev.sebastiancardona.auth.domain.Invite;
@@ -53,17 +54,20 @@ public class AdminController {
     private final UserRepository users;
     private final JdbcTemplate jdbc;
     private final AuditService audit;
+    private final AppActivityService activity;
     private final AuthProperties props;
 
     public AdminController(InviteService inviteService, ClientService clientService,
                            InviteRepository invites, UserRepository users,
-                           JdbcTemplate jdbc, AuditService audit, AuthProperties props) {
+                           JdbcTemplate jdbc, AuditService audit,
+                           AppActivityService activity, AuthProperties props) {
         this.inviteService = inviteService;
         this.clientService = clientService;
         this.invites = invites;
         this.users = users;
         this.jdbc = jdbc;
         this.audit = audit;
+        this.activity = activity;
         this.props = props;
     }
 
@@ -122,13 +126,16 @@ public class AdminController {
     // ===== users =====
 
     public record UserSummary(UUID id, String email, String displayName,
-                              Set<String> groups, boolean disabled, Instant createdAt) {}
+                              Set<String> groups, boolean disabled, Instant createdAt,
+                              List<AppActivityService.AppUsage> apps) {}
 
     @GetMapping("/users")
     public List<UserSummary> listUsers() {
+        var appsByUser = activity.byUser();
         return users.findAll().stream()
                 .map(u -> new UserSummary(u.getId(), u.getEmail(), u.getDisplayName(),
-                        u.getGroups(), u.isDisabled(), u.getCreatedAt()))
+                        u.getGroups(), u.isDisabled(), u.getCreatedAt(),
+                        appsByUser.getOrDefault(u.getId(), List.of())))
                 .toList();
     }
 
@@ -158,7 +165,8 @@ public class AdminController {
         audit.record(AuditService.USER_GROUPS_CHANGED, actorId, user.getEmail(),
                 Map.of("groups", List.copyOf(req.groups())), null);
         return new UserSummary(user.getId(), user.getEmail(), user.getDisplayName(),
-                user.getGroups(), user.isDisabled(), user.getCreatedAt());
+                user.getGroups(), user.isDisabled(), user.getCreatedAt(),
+                activity.forUser(user.getId()));
     }
 
     // ===== clients =====
