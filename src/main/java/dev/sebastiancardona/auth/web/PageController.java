@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +33,15 @@ public class PageController {
     public String home() {
         // no app lives here; the only sensible landing is the account page… which is v2.
         return "redirect:/login";
+    }
+
+    @GetMapping("/signed-out")
+    public String signedOut(Authentication authentication, Model model) {
+        // anonymous requests resolve to null (the servlet wrapper hides the anonymous token)
+        boolean sessionActive = authentication != null
+                && !(authentication instanceof AnonymousAuthenticationToken);
+        model.addAttribute("sessionActive", sessionActive);
+        return "signed-out";
     }
 
     @GetMapping("/register")

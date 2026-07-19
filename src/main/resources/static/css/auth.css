@@ -127,3 +127,10 @@ button:hover { filter: brightness(1.08); }
 
 .notice.err { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
 .notice.ok  { color: var(--ok);  border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+
+.back {
+  margin: 18px 0 0;
+  font-size: 13px;
+}
+
+.back a { color: var(--accent); }

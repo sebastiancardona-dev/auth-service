@@ -5,6 +5,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import dev.sebastiancardona.auth.activity.AppActivityService;
 import dev.sebastiancardona.auth.keys.KeyRotationService;
 import dev.sebastiancardona.auth.user.EcosystemUserDetailsService;
+import dev.sebastiancardona.auth.web.BareLogoutRedirectFilter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
 
 /**
@@ -58,6 +60,9 @@ public class AuthorizationServerConfig {
         http
                 .securityMatcher(authorizationServer.getEndpointsMatcher())
                 .with(authorizationServer, server -> server.oidc(Customizer.withDefaults()))
+                // bare GET /connect/logout (stale bookmark) → /signed-out, before the
+                // OIDC logout endpoint filter gets a chance to 400 on the missing hint
+                .addFilterBefore(new BareLogoutRedirectFilter(), SecurityContextHolderFilter.class)
                 .authorizeHttpRequests(authorize -> authorize.anyRequest().authenticated())
                 // browsers get the login page; API callers get 401
                 .exceptionHandling(ex -> ex.defaultAuthenticationEntryPointFor(

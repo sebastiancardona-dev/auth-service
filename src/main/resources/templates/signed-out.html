@@ -1,0 +1,30 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Cerrar sesión — cuenta del ecosistema</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<main class="card">
+  <span class="brand">sebastiancardona<span class="tld">.dev</span></span>
+  <h1>Cerrar sesión</h1>
+
+  <div th:if="${sessionActive}">
+    <p class="hint">Tu sesión sigue abierta en este servidor. Puedes cerrarla aquí.</p>
+    <form th:action="@{/logout}" method="post">
+      <button type="submit">Cerrar sesión</button>
+    </form>
+  </div>
+
+  <div th:unless="${sessionActive}">
+    <p class="notice ok">No hay ninguna sesión abierta.</p>
+    <p class="hint">Ya cerraste sesión, o nunca la iniciaste aquí. No hay nada que cerrar.</p>
+  </div>
+
+  <p class="back"><a href="https://sebastiancardona.dev">Volver a sebastiancardona.dev</a></p>
+</main>
+</body>
+</html>

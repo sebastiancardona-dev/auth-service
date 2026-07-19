@@ -49,7 +49,7 @@ public class WebSecurityConfig {
     SecurityFilterChain webChain(HttpSecurity http, LoginRateLimitFilter rateLimit) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/register", "/error",
+                        .requestMatchers("/login", "/register", "/signed-out", "/error",
                                 "/health", "/health/**", "/info",
                                 "/css/**", "/icons/**", "/favicon.ico", "/icon.svg").permitAll()
                         .anyRequest().authenticated())
